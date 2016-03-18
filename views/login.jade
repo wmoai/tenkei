@@ -1,0 +1,43 @@
+extends layout
+
+block title
+  title tenkei
+
+block contents
+  if message
+    div(style="color:red")= message
+
+  h2 Login
+  form(method="POST", action="/login")
+    table
+      tr
+        td Mail
+        td
+          input(type="text", name="mail", value=mail)
+      tr
+        td Password:
+        td
+          input(type="password", name="password")
+      tr
+        td
+          input(type="submit", value="login")
+
+  h2 Sign up
+  form(method="POST", action="/signup")
+    table
+      tr
+        td Mail
+        td
+          input(type="text", name="mail", value=mail)
+      tr
+        td Password
+        td
+          input(type="password", name="password")
+      tr
+        td Password Again
+        td
+          input(type="password", name="password_again")
+      tr
+        td
+          input(type="submit", value="signup")
+ 
