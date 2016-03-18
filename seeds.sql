@@ -15,4 +15,19 @@ create table Users (
   primary key (id)
 );
 
+create table Problems (
+  id int not null unique auto_increment,
+  body text not null,
+  resolved boolean not null default false,
+
+  primary key (id)
+);
+
+create table Revelations (
+  id int not null unique auto_increment,
+  pid int not null,
+  body text not null,
+
+  primary key (id)
+);
 

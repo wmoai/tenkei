@@ -42,7 +42,7 @@ server.route([
     path: '/',
     config: {
       handler: (request, reply) => {
-        reply.view('index');
+        reply.view('mypage');
       },
       auth: 'session'
     }

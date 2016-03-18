@@ -44,7 +44,6 @@ export function login(request, reply) {
       message: e.message
     });
   }
-
 }
 
 
