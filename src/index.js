@@ -3,7 +3,7 @@ import vision from 'vision';
 import jade from 'jade';
 import Path from 'path';
 import inert from 'inert';
-import auth from 'hapi-auth-cookie';
+import authCookie from 'hapi-auth-cookie';
 
 import * as route from './route';
 
@@ -26,7 +26,7 @@ server.register(vision, err => {
     }
   });
 });
-server.register(auth, err => {
+server.register(authCookie, err => {
   server.auth.strategy('session', 'cookie', {
     password: 'ab976c9bbdafalsfjlafda89892skd63034e0c7484306a8714e8ab5',
     cookie: 'sid-example',
