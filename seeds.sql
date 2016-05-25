@@ -18,6 +18,7 @@ create table Users (
 create table Problems (
   id int not null unique auto_increment,
   body text not null,
+  memo text,
   resolved boolean not null default false,
 
   primary key (id)

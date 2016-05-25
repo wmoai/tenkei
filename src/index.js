@@ -6,6 +6,7 @@ import inert from 'inert';
 import authCookie from 'hapi-auth-cookie';
 
 import * as route from './route';
+import * as jwt from './model/jwt.js';
 
 const server = new Hapi.Server();
 server.connection({
@@ -26,103 +27,92 @@ server.register(vision, err => {
     }
   });
 });
-server.register(authCookie, err => {
-  server.auth.strategy('session', 'cookie', {
-    password: 'ab976c9bbdafalsfjlafda89892skd63034e0c7484306a8714e8ab5',
-    cookie: 'sid-example',
-    redirectTo: '/login',
-    isSecure: false
-  });
-});
 server.register(inert, () => {});
 
-server.route([
-  {
-    method: 'GET',
-    path: '/',
-    config: {
-      handler: (request, reply) => {
-        reply.view('mypage');
-      },
-      auth: 'session'
-    }
-  },
-  {
-    method: 'GET',
-    path: '/login',
-    config: {
-      handler: route.sign.index,
-      auth: {
-        mode: 'try',
-        strategy: 'session'
-      },
-      plugins: {
-        'hapi-auth-cookie': {
-          redirectTo: false
-        }
-      }
-    }
-  },
-  {
-    method: 'POST',
-    path: '/login',
-    config: {
-      handler: route.sign.login,
-      auth: {
-        mode: 'try',
-        strategy: 'session'
-      },
-      plugins: {
-        'hapi-auth-cookie': {
-          redirectTo: false
-        }
-      }
-    }
-  },
-  {
-    method: 'POST',
-    path: '/signup',
-    config: {
-      handler: route.sign.signup,
-      auth: {
-        mode: 'try',
-        strategy: 'session'
-      },
-      plugins: {
-        'hapi-auth-cookie': {
-          redirectTo: false
-        }
-      }
-    }
-  },
-  {
-    method: 'GET',
-    path: '/signup/{id}/confirm',
-    config: {
-      handler: route.sign.confirm,
-    }
-  },
-  {
-    method: 'GET',
-    path: '/logout',
-    config: {
-      handler: route.sign.logout,
-      auth: 'session'
-    }
-  },
 
-  {
-    method: 'GET',
-    path: '/{param*}',
-    handler: {
-      directory: {
-        path: '.',
-        redirectToSlash: true,
-        index: true
+server.register(require('hapi-auth-jwt2'), function (err) {
+  if(err){
+    console.log(err);
+  }
+  server.auth.strategy('jwt', 'jwt', jwt.options);
+  server.auth.default('jwt');
+
+  server.ext('onPreResponse', (request, reply) => {
+    if (request.auth.mode == 'required' && !request.auth.isAuthenticated) {
+      return reply.redirect('/login');
+    }
+    return reply.continue();
+  });
+
+
+  server.route([
+    {
+      method: 'GET',
+      path: '/',
+      config: {
+        auth: 'jwt',
+        handler: (request, reply) => {
+          reply.view('app');
+        }
+      }
+    },
+    {
+      method: 'GET',
+      path: '/login',
+      config: {
+        auth: false,
+        handler: route.sign.index
+      }
+    },
+    {
+      method: 'POST',
+      path: '/login',
+      config: {
+        auth: false,
+        handler: route.sign.login
+      }
+    },
+    {
+      method: 'POST',
+      path: '/signup',
+      config: {
+        auth: false,
+        handler: route.sign.signup
+      }
+    },
+    {
+      method: 'GET',
+      path: '/signup/{id}/confirm',
+      config: {
+        handler: route.sign.confirm,
+      }
+    },
+    {
+      method: 'GET',
+      path: '/logout',
+      config: {
+        auth: 'jwt',
+        handler: route.sign.logout
+      }
+    },
+
+    {
+      method: 'GET',
+      path: '/{param*}',
+      config: {
+        auth: false,
+        handler: {
+          directory: {
+            path: '.',
+            redirectToSlash: true,
+            index: true
+          }
+        }
       }
     }
-  }
-]);
+  ]);
+
+});
 
 server.start(err => {
   if (err) {

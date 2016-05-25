@@ -3,6 +3,7 @@ import moment from 'moment';
 import Boom from 'boom';
 import * as model from '../../model';
 import Mail from '../../model/mail';
+import * as jwt from '../../model/jwt.js';
 
 export function index(request, reply) {
   if (request.auth.isAuthenticated) {
@@ -31,11 +32,18 @@ export function login(request, reply) {
       if (hash != user.password_hash) {
         return model.sequelize.Promise.reject(Boom.badRequest('Login failed.'));
       }
-      request.cookieAuth.set({
+
+      const token = jwt.getToken({
         id: user.id,
         mail: user.mail
       });
-      return reply.redirect('/');
+      return reply(token).state("token", token);
+
+      // request.cookieAuth.set({
+        // id: user.id,
+        // mail: user.mail
+      // });
+      // return reply.redirect('/');
     });
 
   } catch (e) {

@@ -12,7 +12,7 @@ module.exports = function(Sequelize, sequelize) {
     resolved: {
       type: Sequelize.BOOLEAN,
       allowNull: false,
-      defaultValue; false
+      defaultValue: false
     }
   })
 }
