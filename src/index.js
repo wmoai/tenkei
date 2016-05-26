@@ -58,6 +58,23 @@ server.register(require('hapi-auth-jwt2'), function (err) {
     },
     {
       method: 'GET',
+      path: '/user_problems',
+      config: {
+        auth: 'jwt',
+        handler: route.problem.userList
+      }
+    },
+    {
+      method: 'POST',
+      path: '/problem',
+      config: {
+        auth: 'jwt',
+        handler: route.problem.create
+      }
+    },
+
+    {
+      method: 'GET',
       path: '/login',
       config: {
         auth: false,

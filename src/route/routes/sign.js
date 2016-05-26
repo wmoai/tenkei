@@ -2,7 +2,7 @@ import sha1 from 'sha1';
 import moment from 'moment';
 import Boom from 'boom';
 import * as model from '../../model';
-import Mail from '../../model/mail';
+import Mail from '../../model/mail.js';
 import * as jwt from '../../model/jwt.js';
 
 export function index(request, reply) {
@@ -33,17 +33,8 @@ export function login(request, reply) {
         return model.sequelize.Promise.reject(Boom.badRequest('Login failed.'));
       }
 
-      const token = jwt.getToken({
-        id: user.id,
-        mail: user.mail
-      });
-      return reply(token).state("token", token);
-
-      // request.cookieAuth.set({
-        // id: user.id,
-        // mail: user.mail
-      // });
-      // return reply.redirect('/');
+      return reply.redirect('/')
+      .state("token", jwt.getToken(user));
     });
 
   } catch (e) {
@@ -130,11 +121,9 @@ export function confirm(request, reply) {
         return model.sequelize.Promise.reject(Boom.badImplementation('Register error'));
       }
       _validUser.destroy();
-      request.cookieAuth.set({
-        id: user.id,
-        mail: user.mail
-      });
-      return reply.redirect('/');
+
+      return reply.redirect('/')
+      .state("token", jwt.getToken(user));
     });
   } catch (e) {
     reply(e);
@@ -142,8 +131,8 @@ export function confirm(request, reply) {
 }
 
 export function logout(request, reply) {
-  request.cookieAuth.clear();
-  return reply.redirect('/');
+  return reply.redirect('/')
+  .state("token", '');
 }
 
 

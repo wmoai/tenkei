@@ -2,7 +2,6 @@ import React from 'react';
 import {render} from 'react-dom';
 import MicroContainer from 'react-micro-container';
 
-
 class Container extends MicroContainer {
   constructor(props) {
     super(props);
@@ -12,11 +11,27 @@ class Container extends MicroContainer {
   }
   componentDidMount() {
     this.subscribe({
-      addProbrem: this.addProbrem
+      addProblem: this.addProblem
+    });
+
+    fetch('/user_problems', {
+      credentials: 'include'
+    }).then(response => {
+      return response.json();
+    }).then(json => {
+      console.log(json);
     });
   }
-  addProbrem(body) {
-    console.log(`add probrem ${body}`);
+  addProblem(form) {
+    fetch('/problem', {
+      method: "POST",
+      credentials: 'include',
+      body: new FormData(form)
+    }).then(response => {
+      return response.json();
+    }).then(json => {
+      console.log(json);
+    });
   }
   render() {
     return (
@@ -33,8 +48,8 @@ class Midgard extends React.Component {
     return (
       <div id="midgard">
         <h3>人間界</h3>
-        <form method="POST" action="/probrem" id="add-probrem" onSubmit={(e) => {
-          this.props.dispatch('addProbrem', e.target.body.value);
+        <form method="POST" action="/problem" id="add-probrem" onSubmit={(e) => {
+          this.props.dispatch("addProblem", e.target);
           e.target.body.value = '';
           e.preventDefault();
         }}>
