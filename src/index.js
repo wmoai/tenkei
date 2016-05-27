@@ -3,7 +3,6 @@ import vision from 'vision';
 import jade from 'jade';
 import Path from 'path';
 import inert from 'inert';
-import authCookie from 'hapi-auth-cookie';
 
 import * as route from './route';
 import * as jwt from './model/jwt.js';
@@ -56,12 +55,22 @@ server.register(require('hapi-auth-jwt2'), function (err) {
         }
       }
     },
+
+
     {
       method: 'GET',
       path: '/user_problems',
       config: {
         auth: 'jwt',
         handler: route.problem.userList
+      }
+    },
+    {
+      method: 'GET',
+      path: '/problem/{id}',
+      config: {
+        auth: 'jwt',
+        handler: route.problem.get
       }
     },
     {
@@ -72,12 +81,24 @@ server.register(require('hapi-auth-jwt2'), function (err) {
         handler: route.problem.create
       }
     },
+    {
+      method: 'POST',
+      path: '/problem/{id}/memo',
+      config: {
+        auth: 'jwt',
+        handler: route.problem.editMemo
+      }
+    },
+
 
     {
       method: 'GET',
       path: '/login',
       config: {
-        auth: false,
+        auth: {
+          strategies: ['jwt'],
+          mode: 'try'
+        },
         handler: route.sign.index
       }
     },
@@ -85,7 +106,10 @@ server.register(require('hapi-auth-jwt2'), function (err) {
       method: 'POST',
       path: '/login',
       config: {
-        auth: false,
+        auth: {
+          strategies: ['jwt'],
+          mode: 'try'
+        },
         handler: route.sign.login
       }
     },
@@ -93,7 +117,10 @@ server.register(require('hapi-auth-jwt2'), function (err) {
       method: 'POST',
       path: '/signup',
       config: {
-        auth: false,
+        auth: {
+          strategies: ['jwt'],
+          mode: 'try'
+        },
         handler: route.sign.signup
       }
     },
@@ -101,7 +128,8 @@ server.register(require('hapi-auth-jwt2'), function (err) {
       method: 'GET',
       path: '/signup/{id}/confirm',
       config: {
-        handler: route.sign.confirm,
+        auth: false,
+        handler: route.sign.confirm
       }
     },
     {

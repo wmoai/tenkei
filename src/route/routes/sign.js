@@ -16,33 +16,29 @@ export function login(request, reply) {
   if (request.auth.isAuthenticated) {
     return reply.redirect('/');
   }
-  try {
-    if (!request.payload) {
-      throw Boom.badRequest();
+  if (!request.payload) {
+    throw Boom.badRequest();
+  }
+  const address = request.payload.mail;
+  const password = request.payload.password;
+
+  model.user.findOne({where: {mail: address}}).then(user => {
+    if (!user) {
+      return model.sequelize.Promise.reject(Boom.badRequest('Login failed.'));
     }
-    const address = request.payload.mail;
-    const password = request.payload.password;
+    const hash = sha1(password + user.solt);
+    if (hash != user.password_hash) {
+      return model.sequelize.Promise.reject(Boom.badRequest('Login failed.'));
+    }
 
-    model.user.findOne({where: {mail: address}})
-    .then(user => {
-      if (!user) {
-        return model.sequelize.Promise.reject(Boom.badRequest('Login failed.'));
-      }
-      const hash = sha1(password + user.solt);
-      if (hash != user.password_hash) {
-        return model.sequelize.Promise.reject(Boom.badRequest('Login failed.'));
-      }
-
-      return reply.redirect('/')
-      .state("token", jwt.getToken(user));
-    });
-
-  } catch (e) {
+    return reply.redirect('/')
+    .state("token", jwt.getToken(user), {path: "/"});
+  }).catch(e => {
     return reply.view('login', {
       mail: address,
       message: e.message
     });
-  }
+  });
 }
 
 
@@ -101,38 +97,36 @@ export function confirm(request, reply) {
     return reply.redirect('/');
   }
   let _validUser = null;
-  try {
-    model.validUser.findById(request.params.id)
-    .then(validUser => {
-      if (!validUser) {
-        return model.sequelize.Promise.reject(Boom.notFound('Invalid parameter'));
-      }
-      _validUser = validUser;
-      if (moment().subtract(15, 'minutes').isAfter(validUser.createdAt)) {
-        return model.sequelize.Promise.reject(Boom.resourceGone('Link expired'));
-      }
-      return model.user.create({
-        mail: validUser.mail,
-        password_hash: validUser.password_hash,
-        solt: validUser.solt
-      });
-    }).then(user => {
-      if (!user) {
-        return model.sequelize.Promise.reject(Boom.badImplementation('Register error'));
-      }
-      _validUser.destroy();
-
-      return reply.redirect('/')
-      .state("token", jwt.getToken(user));
+  model.validUser.findById(request.params.id)
+  .then(validUser => {
+    if (!validUser) {
+      return model.sequelize.Promise.reject(Boom.notFound('Invalid parameter'));
+    }
+    _validUser = validUser;
+    if (moment().subtract(15, 'minutes').isAfter(validUser.createdAt)) {
+      return model.sequelize.Promise.reject(Boom.resourceGone('Link expired'));
+    }
+    return model.user.create({
+      mail: validUser.mail,
+      password_hash: validUser.password_hash,
+      solt: validUser.solt
     });
-  } catch (e) {
+  }).then(user => {
+    if (!user) {
+      return model.sequelize.Promise.reject(Boom.badImplementation('Register error'));
+    }
+    _validUser.destroy();
+
+    return reply.redirect('/')
+    .state("token", jwt.getToken(user), {path: "/"});
+  }).catch(e => {
     reply(e);
-  }
+  });
 }
 
 export function logout(request, reply) {
   return reply.redirect('/')
-  .state("token", '');
+  .unstate("token");
 }
 
 
